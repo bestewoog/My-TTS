@@ -287,39 +287,39 @@ def build_demo(tts: Qwen3TTSModel, ckpt: str, gen_kwargs_default: Dict[str, Any]
             with gr.Row():
                 with gr.Column(scale=2):
                     text_in = gr.Textbox(
-                        label="Text (待合成文本)",
+                        label="Text (합성할 텍스트)",
                         lines=4,
-                        placeholder="Enter text to synthesize (输入要合成的文本).",
+                        placeholder="Enter text to synthesize (합성할 텍스트를 입력하세요).",
                     )
                     with gr.Row():
                         lang_in = gr.Dropdown(
-                            label="Language (语种)",
+                            label="Language (언어)",
                             choices=lang_choices_disp,
                             value="Auto",
                             interactive=True,
                         )
                         spk_in = gr.Dropdown(
-                            label="Speaker (说话人)",
+                            label="Speaker (화자)",
                             choices=spk_choices_disp,
                             value="Vivian",
                             interactive=True,
                         )
                     instruct_in = gr.Textbox(
-                        label="Instruction (Optional) (控制指令，可不输入)",
+                        label="Instruction (Optional) (제어 명령, 선택 입력)",
                         lines=2,
-                        placeholder="e.g. Say it in a very angry tone (例如：用特别伤心的语气说).",
+                        placeholder="e.g. Say it in a very angry tone (예: 매우 슬픈语气으로 말하기).",
                     )
-                    btn = gr.Button("Generate (生成)", variant="primary")
+                    btn = gr.Button("Generate (생성)", variant="primary")
                 with gr.Column(scale=3):
-                    audio_out = gr.Audio(label="Output Audio (合成结果)", type="numpy")
-                    err = gr.Textbox(label="Status (状态)", lines=2)
+                    audio_out = gr.Audio(label="Output Audio (합성 결과)", type="numpy")
+                    err = gr.Textbox(label="Status (상태)", lines=2)
 
             def run_instruct(text: str, lang_disp: str, spk_disp: str, instruct: str):
                 try:
                     if not text or not text.strip():
-                        return None, "Text is required (必须填写文本)."
+                        return None, "Text is required (텍스트를 입력해야 합니다)."
                     if not spk_disp:
-                        return None, "Speaker is required (必须选择说话人)."
+                        return None, "Speaker is required (화자를 선택해야 합니다)."
                     language = lang_map.get(lang_disp, "Auto")
                     speaker = spk_map.get(spk_disp, spk_disp)
                     kwargs = _gen_common_kwargs()
@@ -330,7 +330,7 @@ def build_demo(tts: Qwen3TTSModel, ckpt: str, gen_kwargs_default: Dict[str, Any]
                         instruct=(instruct or "").strip() or None,
                         **kwargs,
                     )
-                    return _wav_to_gradio_audio(wavs[0], sr), "Finished. (生成完成)"
+                    return _wav_to_gradio_audio(wavs[0], sr), "Finished. (생성 완료)"
                 except Exception as e:
                     return None, f"{type(e).__name__}: {e}"
 
@@ -340,33 +340,33 @@ def build_demo(tts: Qwen3TTSModel, ckpt: str, gen_kwargs_default: Dict[str, Any]
             with gr.Row():
                 with gr.Column(scale=2):
                     text_in = gr.Textbox(
-                        label="Text (待合成文本)",
+                        label="Text (합성할 텍스트)",
                         lines=4,
                         value="It's in the top drawer... wait, it's empty? No way, that's impossible! I'm sure I put it there!"
                     )
                     with gr.Row():
                         lang_in = gr.Dropdown(
-                            label="Language (语种)",
+                            label="Language (언어)",
                             choices=lang_choices_disp,
                             value="Auto",
                             interactive=True,
                         )
                     design_in = gr.Textbox(
-                        label="Voice Design Instruction (音色描述)",
+                        label="Voice Design Instruction (음성 설계 명령)",
                         lines=3,
                         value="Speak in an incredulous tone, but with a hint of panic beginning to creep into your voice."
                     )
-                    btn = gr.Button("Generate (生成)", variant="primary")
+                    btn = gr.Button("Generate (생성)", variant="primary")
                 with gr.Column(scale=3):
-                    audio_out = gr.Audio(label="Output Audio (合成结果)", type="numpy")
-                    err = gr.Textbox(label="Status (状态)", lines=2)
+                    audio_out = gr.Audio(label="Output Audio (합성 결과)", type="numpy")
+                    err = gr.Textbox(label="Status (상태)", lines=2)
 
             def run_voice_design(text: str, lang_disp: str, design: str):
                 try:
                     if not text or not text.strip():
-                        return None, "Text is required (必须填写文本)."
+                        return None, "Text is required (텍스트를 입력해야 합니다)."
                     if not design or not design.strip():
-                        return None, "Voice design instruction is required (必须填写音色描述)."
+                        return None, "Voice design instruction is required (음성 설계 명령을 입력해야 합니다)."
                     language = lang_map.get(lang_disp, "Auto")
                     kwargs = _gen_common_kwargs()
                     wavs, sr = tts.generate_voice_design(
@@ -375,7 +375,7 @@ def build_demo(tts: Qwen3TTSModel, ckpt: str, gen_kwargs_default: Dict[str, Any]
                         instruct=design.strip(),
                         **kwargs,
                     )
-                    return _wav_to_gradio_audio(wavs[0], sr), "Finished. (生成完成)"
+                    return _wav_to_gradio_audio(wavs[0], sr), "Finished. (생성 완료)"
                 except Exception as e:
                     return None, f"{type(e).__name__}: {e}"
 
@@ -383,51 +383,51 @@ def build_demo(tts: Qwen3TTSModel, ckpt: str, gen_kwargs_default: Dict[str, Any]
 
         else:  # voice_clone for base
             with gr.Tabs():
-                with gr.Tab("Clone & Generate (克隆并合成)"):
+                with gr.Tab("Clone & Generate (클론 및 합성)"):
                     with gr.Row():
                         with gr.Column(scale=2):
                             ref_audio = gr.Audio(
-                                label="Reference Audio (参考音频)",
+                                label="Reference Audio (참조 오디오)",
                             )
                             ref_text = gr.Textbox(
-                                label="Reference Text (参考音频文本)",
+                                label="Reference Text (참조 오디오 텍스트)",
                                 lines=2,
-                                placeholder="Required if not set use x-vector only (不勾选use x-vector only时必填).",
+                                placeholder="Required if not set use x-vector only (x-vector만 사용 체크 시 필수).",
                             )
                             xvec_only = gr.Checkbox(
-                                label="Use x-vector only (仅用说话人向量，效果有限，但不用传入参考音频文本)",
+                                label="Use x-vector only (화자 벡터만 사용, 품질 제한 but 참조 텍스트 불필요)",
                                 value=False,
                             )
 
                         with gr.Column(scale=2):
                             text_in = gr.Textbox(
-                                label="Target Text (待合成文本)",
+                                label="Target Text (합성할 텍스트)",
                                 lines=4,
-                                placeholder="Enter text to synthesize (输入要合成的文本).",
+                                placeholder="Enter text to synthesize (합성할 텍스트를 입력하세요).",
                             )
                             lang_in = gr.Dropdown(
-                                label="Language (语种)",
+                                label="Language (언어)",
                                 choices=lang_choices_disp,
                                 value="Auto",
                                 interactive=True,
                             )
-                            btn = gr.Button("Generate (生成)", variant="primary")
+                            btn = gr.Button("Generate (생성)", variant="primary")
 
                         with gr.Column(scale=3):
-                            audio_out = gr.Audio(label="Output Audio (合成结果)", type="numpy")
-                            err = gr.Textbox(label="Status (状态)", lines=2)
+                            audio_out = gr.Audio(label="Output Audio (합성 결과)", type="numpy")
+                            err = gr.Textbox(label="Status (상태)", lines=2)
 
                     def run_voice_clone(ref_aud, ref_txt: str, use_xvec: bool, text: str, lang_disp: str):
                         try:
                             if not text or not text.strip():
-                                return None, "Target text is required (必须填写待合成文本)."
+                                return None, "Target text is required (합성할 텍스트를 입력해야 합니다)."
                             at = _audio_to_tuple(ref_aud)
                             if at is None:
-                                return None, "Reference audio is required (必须上传参考音频)."
+                                return None, "Reference audio is required (참조 오디오를 업로드해야 합니다)."
                             if (not use_xvec) and (not ref_txt or not ref_txt.strip()):
                                 return None, (
                                     "Reference text is required when use x-vector only is NOT enabled.\n"
-                                    "(未勾选 use x-vector only 时，必须提供参考音频文本；否则请勾选 use x-vector only，但效果会变差.)"
+                                    "(x-vector만 사용 체크 해제 시 참조 오디오 텍스트 필수; 체크 시 품질이 낮아집니다.)"
                                 )
                             language = lang_map.get(lang_disp, "Auto")
                             kwargs = _gen_common_kwargs()
@@ -439,7 +439,7 @@ def build_demo(tts: Qwen3TTSModel, ckpt: str, gen_kwargs_default: Dict[str, Any]
                                 x_vector_only_mode=bool(use_xvec),
                                 **kwargs,
                             )
-                            return _wav_to_gradio_audio(wavs[0], sr), "Finished. (生成完成)"
+                            return _wav_to_gradio_audio(wavs[0], sr), "Finished. (생성 완료)"
                         except Exception as e:
                             return None, f"{type(e).__name__}: {e}"
 
@@ -449,64 +449,64 @@ def build_demo(tts: Qwen3TTSModel, ckpt: str, gen_kwargs_default: Dict[str, Any]
                         outputs=[audio_out, err],
                     )
 
-                with gr.Tab("Save / Load Voice (保存/加载克隆音色)"):
+                with gr.Tab("Save / Load Voice (음성 저장/불러오기)"):
                     with gr.Row():
                         with gr.Column(scale=2):
                             gr.Markdown(
                                 """
-### Save Voice (保存音色)
-Upload reference audio and text, choose use x-vector only or not, then save a reusable voice prompt file.  
-(上传参考音频和参考文本，选择是否使用 use x-vector only 模式后保存为可复用的音色文件)
+### Save Voice (음성 저장)
+참조 오디오와 텍스트를 업로드하고, x-vector만 사용 여부를 선택한 후 재사용 가능한 음성 프롬프트 파일로 저장합니다.  
+(x-vector만 사용 모드 선택 후 저장)
 """
                             )
-                            ref_audio_s = gr.Audio(label="Reference Audio (参考音频)", type="numpy")
+                            ref_audio_s = gr.Audio(label="Reference Audio (참조 오디오)", type="numpy")
                             ref_text_s = gr.Textbox(
-                                label="Reference Text (参考音频文本)",
+                                label="Reference Text (참조 오디오 텍스트)",
                                 lines=2,
-                                placeholder="Required if not set use x-vector only (不勾选use x-vector only时必填).",
+                                placeholder="Required if not set use x-vector only (x-vector만 사용 체크 시 필수).",
                             )
                             xvec_only_s = gr.Checkbox(
-                                label="Use x-vector only (仅用说话人向量，效果有限，但不用传入参考音频文本)",
+                                label="Use x-vector only (화자 벡터만 사용, 품질 제한 but 참조 텍스트 불필요)",
                                 value=False,
                             )
-                            save_btn = gr.Button("Save Voice File (保存音色文件)", variant="primary")
-                            prompt_file_out = gr.File(label="Voice File (音色文件)")
+                            save_btn = gr.Button("Save Voice File (음성 파일 저장)", variant="primary")
+                            prompt_file_out = gr.File(label="Voice File (음성 파일)")
 
                         with gr.Column(scale=2):
                             gr.Markdown(
                                 """
-### Load Voice & Generate (加载音色并合成)
-Upload a previously saved voice file, then synthesize new text.  
-(上传已保存提示文件后，输入新文本进行合成)
+### Load Voice & Generate (음성 불러오기 및 합성)
+이전에 저장한 음성 파일을 업로드한 후 새 텍스트를 합성합니다.  
+(저장된 프롬프트 파일 업로드 후 텍스트 입력)
 """
                             )
-                            prompt_file_in = gr.File(label="Upload Prompt File (上传提示文件)")
+                            prompt_file_in = gr.File(label="Upload Prompt File (프롬프트 파일 업로드)")
                             text_in2 = gr.Textbox(
-                                label="Target Text (待合成文本)",
+                                label="Target Text (합성할 텍스트)",
                                 lines=4,
-                                placeholder="Enter text to synthesize (输入要合成的文本).",
+                                placeholder="Enter text to synthesize (합성할 텍스트를 입력하세요).",
                             )
                             lang_in2 = gr.Dropdown(
-                                label="Language (语种)",
+                                label="Language (언어)",
                                 choices=lang_choices_disp,
                                 value="Auto",
                                 interactive=True,
                             )
-                            gen_btn2 = gr.Button("Generate (生成)", variant="primary")
+                            gen_btn2 = gr.Button("Generate (생성)", variant="primary")
 
                         with gr.Column(scale=3):
-                            audio_out2 = gr.Audio(label="Output Audio (合成结果)", type="numpy")
-                            err2 = gr.Textbox(label="Status (状态)", lines=2)
+                            audio_out2 = gr.Audio(label="Output Audio (합성 결과)", type="numpy")
+                            err2 = gr.Textbox(label="Status (상태)", lines=2)
 
                     def save_prompt(ref_aud, ref_txt: str, use_xvec: bool):
                         try:
                             at = _audio_to_tuple(ref_aud)
                             if at is None:
-                                return None, "Reference audio is required (必须上传参考音频)."
+                                return None, "Reference audio is required (참조 오디오를 업로드해야 합니다)."
                             if (not use_xvec) and (not ref_txt or not ref_txt.strip()):
                                 return None, (
                                     "Reference text is required when use x-vector only is NOT enabled.\n"
-                                    "(未勾选 use x-vector only 时，必须提供参考音频文本；否则请勾选 use x-vector only，但效果会变差.)"
+                                    "(x-vector만 사용 체크 해제 시 참조 오디오 텍스트 필수; 체크 시 품질이 낮아집니다.)"
                                 )
                             items = tts.create_voice_clone_prompt(
                                 ref_audio=at,
@@ -519,36 +519,36 @@ Upload a previously saved voice file, then synthesize new text.
                             fd, out_path = tempfile.mkstemp(prefix="voice_clone_prompt_", suffix=".pt")
                             os.close(fd)
                             torch.save(payload, out_path)
-                            return out_path, "Finished. (生成完成)"
+                            return out_path, "Finished. (생성 완료)"
                         except Exception as e:
                             return None, f"{type(e).__name__}: {e}"
 
                     def load_prompt_and_gen(file_obj, text: str, lang_disp: str):
                         try:
                             if file_obj is None:
-                                return None, "Voice file is required (必须上传音色文件)."
+                                return None, "Voice file is required (음성 파일을 업로드해야 합니다)."
                             if not text or not text.strip():
-                                return None, "Target text is required (必须填写待合成文本)."
+                                return None, "Target text is required (합성할 텍스트를 입력해야 합니다)."
 
                             path = getattr(file_obj, "name", None) or getattr(file_obj, "path", None) or str(file_obj)
                             payload = torch.load(path, map_location="cpu", weights_only=True)
                             if not isinstance(payload, dict) or "items" not in payload:
-                                return None, "Invalid file format (文件格式不正确)."
+                                return None, "Invalid file format (파일 형식이 올바르지 않습니다)."
 
                             items_raw = payload["items"]
                             if not isinstance(items_raw, list) or len(items_raw) == 0:
-                                return None, "Empty voice items (音色为空)."
+                                return None, "Empty voice items (음성이 비어 있습니다)."
 
                             items: List[VoiceClonePromptItem] = []
                             for d in items_raw:
                                 if not isinstance(d, dict):
-                                    return None, "Invalid item format in file (文件内部格式错误)."
+                                    return None, "Invalid item format in file (파일 내부 형식 오류)."
                                 ref_code = d.get("ref_code", None)
                                 if ref_code is not None and not torch.is_tensor(ref_code):
                                     ref_code = torch.tensor(ref_code)
                                 ref_spk = d.get("ref_spk_embedding", None)
                                 if ref_spk is None:
-                                    return None, "Missing ref_spk_embedding (缺少说话人向量)."
+                                    return None, "Missing ref_spk_embedding (화자 벡터가 없습니다)."
                                 if not torch.is_tensor(ref_spk):
                                     ref_spk = torch.tensor(ref_spk)
 
@@ -570,11 +570,11 @@ Upload a previously saved voice file, then synthesize new text.
                                 voice_clone_prompt=items,
                                 **kwargs,
                             )
-                            return _wav_to_gradio_audio(wavs[0], sr), "Finished. (生成完成)"
+                            return _wav_to_gradio_audio(wavs[0], sr), "Finished. (생성 완료)"
                         except Exception as e:
                             return None, (
                                 f"Failed to read or use voice file. Check file format/content.\n"
-                                f"(读取或使用音色文件失败，请检查文件格式或内容)\n"
+                                f"(음성 파일 읽기/사용 실패, 파일 형식 또는 내용을 확인하세요)\n"
                                 f"{type(e).__name__}: {e}"
                             )
 
@@ -583,9 +583,9 @@ Upload a previously saved voice file, then synthesize new text.
 
         gr.Markdown(
             """
-**Disclaimer (免责声明)**  
-- The audio is automatically generated/synthesized by an AI model solely to demonstrate the model’s capabilities; it may be inaccurate or inappropriate, does not represent the views of the developer/operator, and does not constitute professional advice. You are solely responsible for evaluating, using, distributing, or relying on this audio; to the maximum extent permitted by applicable law, the developer/operator disclaims liability for any direct, indirect, incidental, or consequential damages arising from the use of or inability to use the audio, except where liability cannot be excluded by law. Do not use this service to intentionally generate or replicate unlawful, harmful, defamatory, fraudulent, deepfake, or privacy/publicity/copyright/trademark‑infringing content; if a user prompts, supplies materials, or otherwise facilitates any illegal or infringing conduct, the user bears all legal consequences and the developer/operator is not responsible.
-- 音频由人工智能模型自动生成/合成，仅用于体验与展示模型效果，可能存在不准确或不当之处；其内容不代表开发者/运营方立场，亦不构成任何专业建议。用户应自行评估并承担使用、传播或依赖该音频所产生的一切风险与责任；在适用法律允许的最大范围内，开发者/运营方不对因使用或无法使用本音频造成的任何直接、间接、附带或后果性损失承担责任（法律另有强制规定的除外）。严禁利用本服务故意引导生成或复制违法、有害、诽谤、欺诈、深度伪造、侵犯隐私/肖像/著作权/商标等内容；如用户通过提示词、素材或其他方式实施或促成任何违法或侵权行为，相关法律后果由用户自行承担，与开发者/运营方无关。
+**Disclaimer (면책 고지)**  
+- 오디오는 AI 모델이 모델의 기능을 시연하기 위해 자동으로 생성/합성되었으며, 부정확하거나 부적절할 수 있으며 개발자/운영자의 의견을 나타내거나 전문적인 조성을 구성하지 않습니다. 귀하는 이 오디오를 평가, 사용, 배포 또는 신뢰하는 것에 전적으로 책임을 집니다. 적용법률이 허용하는 최대 범위 내에서, 개발자/运营자는 법률이 별도로 강제하지 않는 한, 오디오 사용 또는 사용 불가로 인해 발생하는直接或间接,偶发或后果性的损害에 대해 책임을 지지 않습니다. 본 서비스를 사용하여 불법,的有害,诽谤,欺诈,深度伪造,개인정보/초상권/저작권/상표권을 침해하는 콘텐츠를 의도적으로 생성하거나 복제하지 마십시오. 사용자가 프롬프트, 자료 또는 기타 방식으로 불법 또는 침해 행위를 촉진하거나参与的 경우, 사용자는 모든 법적后果을 부담하고 개발자/运营자는 책임을지지 않습니다.
+- 오디오는 AI 모델이 모델 기능을 시연하기 위해 자동으로 생성/합성되었으며, 부정확하거나 부적절할 수 있습니다. 해당 내용은 개발자/운영자의 입장을 나타내거나 전문적인 조언을 구성하지 않습니다. 사용자는 해당 오디오 사용, 배포 또는 신뢰로 인해 발생하는 모든 위험과 책임을 평가하고 부담해야 합니다. 적용법률이 허용하는 최대 범위 내에서, 개발자/운영자는 본 오디오 사용 또는 사용 불가능으로 인해 발생하는 모든 직접, 간접, 부수적 또는 결과적 손실에 대해 책임을 지지 않습니다 (법률이 별도로 강제하는 경우 제외). 본 서비스를 활용하여 불법,的有害,诽谤,欺诈,딥페이크,개인정보/초상권/저작권/상표권을 침해하는 콘텐츠를 의도적으로 생성하거나 복제하는 것은 금지됩니다. 사용자가 프롬프트, 자료 또는 기타 방식을 통해 불법 또는 침해 행위를实施 또는 참여한 경우, 관련 법적后果은 사용자가 전적으로 부담하며 개발자/운영자와는 무관합니다.
 """
         )
 
