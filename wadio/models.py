@@ -8,7 +8,10 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     password_hash = Column(String)
     role = Column(String, default="user")
+    is_approved = Column(Boolean, default=False)  # Requires admin approval
+    is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    approved_at = Column(DateTime, nullable=True)
 
 class VoiceFile(Base):
     __tablename__ = "voice_files"

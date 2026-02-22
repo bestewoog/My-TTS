@@ -11,6 +11,8 @@ def get_token(email, password):
         )
         if resp.status_code == 200:
             return resp.json()["access_token"]
+        elif resp.status_code == 403:
+            return "PENDING_APPROVAL"
     except Exception as e:
         print(f"Login error: {e}")
     return None
@@ -95,16 +97,28 @@ def build_ui():
                 gen_status = gr.Textbox(label="Status", interactive=False)
         
         def do_login(email, password):
+            if not email or not password:
+                return None, "❌ Please enter email and password", gr.update(visible=False), gr.update(visible=True)
             token = get_token(email, password)
+            if token == "PENDING_APPROVAL":
+                return None, "⏳ Account pending approval. Contact admin.", gr.update(visible=False), gr.update(visible=True)
             if token:
                 return token, "✅ Login successful!", gr.update(visible=True), gr.update(visible=False)
             return None, "❌ Login failed - check credentials", gr.update(visible=False), gr.update(visible=True)
         
         def do_register(email, password):
+            if not email or not password:
+                return None, "❌ Please enter email and password", gr.update(visible=False), gr.update(visible=True)
+            if len(password) < 6:
+                return None, "❌ Password must be at least 6 characters", gr.update(visible=False), gr.update(visible=True)
+            
             ok = register_user(email, password)
             if ok:
-                return "✅ Registered! Please login."
-            return "❌ Registration failed"
+                token = get_token(email, password)
+                if token:
+                    return token, "✅ Registered & Login successful!", gr.update(visible=True), gr.update(visible=False)
+                return None, "✅ Registered! Please login.", gr.update(visible=False), gr.update(visible=True)
+            return None, "❌ Registration failed - email may already exist", gr.update(visible=False), gr.update(visible=True)
         
         def upload_voice(token, f, transcript):
             if not token:
@@ -249,7 +263,7 @@ def build_ui():
                 return None, f"❌ Error: {str(e)}"
         
         login_btn.click(do_login, inputs=[email_in, pass_in], outputs=[token_state, login_msg, main_content, login_col])
-        reg_btn.click(do_register, inputs=[email_in, pass_in], outputs=[login_msg])
+        reg_btn.click(do_register, inputs=[email_in, pass_in], outputs=[token_state, login_msg, main_content, login_col])
         
         upload_btn.click(upload_voice, inputs=[token_state, upload_file, transcript_in], outputs=[upload_result, file_list])
         refresh_files_btn.click(list_files, inputs=[token_state], outputs=[file_list])
