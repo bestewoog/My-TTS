@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 import aiofiles
 import os
@@ -10,20 +9,12 @@ from wadio.config import VOICE_DIR
 
 router = APIRouter(prefix="/voice-files", tags=["voice-files"])
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+DEFAULT_USER_ID = 1
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    from jose import JWTError
-    from wadio.config import SECRET_KEY, ALGORITHM
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = payload.get("user_id")
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    
-    user = db.query(User).filter(User.id == user_id).first()
+def get_current_user(db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == DEFAULT_USER_ID).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        user = User(id=DEFAULT_USER_ID, email="default@local", role="admin", is_approved=True, is_active=True)
     return user
 
 @router.post("/upload")
