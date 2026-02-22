@@ -1338,6 +1338,104 @@ During evaluation, we ran inference for all models with `dtype=torch.bfloat16` a
 
 </details>
 
+---
+
+## Wadio - Voice Management Platform
+
+**Wadio** (wiznut.com's w + audio) is a voice management platform built on Qwen3-TTS. It supports multiple users, custom voice cloning via Fine-tuning, and provides both Web UI and API for TTS generation.
+
+### Features
+
+- **Multi-user Support**: User registration and authentication via JWT
+- **Voice File Management**: Upload, list, and delete voice files
+- **Fine-tuning**: Create custom speakers from voice files using Qwen3-TTS Fine-tuning
+- **TTS Generation**: Generate speech using built-in or custom speakers
+- **Web UI**: Gradio-based interface for all operations
+
+### Quick Start
+
+#### 1. Install Dependencies
+
+```bash
+cd wadio
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+pip install email-validator
+```
+
+#### 2. Start API Server
+
+```bash
+python -m wadio.main
+```
+
+API server will run on `http://localhost:21302`
+
+#### 3. Start Web UI
+
+```bash
+python -m wadio.ui.app
+```
+
+Web UI will run on `http://localhost:7860`
+
+### API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register` | Register new user |
+| POST | `/api/auth/login` | Login and get JWT token |
+| POST | `/api/voice-files/upload` | Upload voice file |
+| GET | `/api/voice-files/` | List user's voice files |
+| DELETE | `/api/voice-files/{id}` | Delete voice file |
+| POST | `/api/finetune/start` | Start Fine-tuning job |
+| GET | `/api/finetune/jobs` | List Fine-tuning jobs |
+| GET | `/api/finetune/{job_id}` | Get job status |
+| GET | `/api/speakers/` | List user's speakers |
+| POST | `/api/tts/synthesize` | Generate TTS audio |
+| GET | `/api/tts/audio/{filename}` | Download generated audio |
+
+### Using the Web UI
+
+1. **Login/Register**: Create an account or login
+2. **Voice Files**: Upload WAV audio files with transcripts
+3. **Fine-tuning**: Select voice files and create a custom speaker
+4. **Speakers**: View your trained speakers
+5. **TTS Generate**: Generate speech using your custom speakers
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SECRET_KEY` | wadio-secret-key-change-in-production | JWT secret key |
+| `QWEN_MODEL_PATH` | Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice | Qwen model path |
+| `DATABASE_URL` | sqlite:///./wadio.db | Database connection |
+
+### Directory Structure
+
+```
+wadio/
+├── wadio/
+│   ├── main.py           # FastAPI server
+│   ├── config.py         # Configuration
+│   ├── database.py       # Database setup
+│   ├── models.py         # SQLAlchemy models
+│   ├── api/             # API endpoints
+│   │   ├── auth.py
+│   │   ├── voice_files.py
+│   │   ├── finetune.py
+│   │   ├── speakers.py
+│   │   └── tts.py
+│   ├── core/            # Core utilities
+│   │   └── auth.py
+│   ├── tasks/           # Background tasks
+│   │   └── finetune.py
+│   └── ui/              # Gradio UI
+│       └── app.py
+├── requirements.txt
+└── wadio.db             # SQLite database (created on first run)
+```
 
 ## Citation
 
