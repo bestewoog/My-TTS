@@ -17,7 +17,7 @@ router = APIRouter(prefix="/tts", tags=["tts"])
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
-_tts_model = None
+_model_cache = {}
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     from wadio.config import SECRET_KEY, ALGORITHM
@@ -32,16 +32,28 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-def get_model():
-    global _tts_model
-    if _tts_model is None:
+def get_model(model_path: Optional[str] = None):
+    model_key = model_path or "default"
+    if model_key not in _model_cache:
         from qwen_tts import Qwen3TTSModel
-        _tts_model = Qwen3TTSModel.from_pretrained(
-            QWEN_MODEL_PATH,
+        load_path = model_path if model_path else QWEN_MODEL_PATH
+        _model_cache[model_key] = Qwen3TTSModel.from_pretrained(
+            load_path,
             device_map=QWEN_DEVICE,
             dtype=torch.bfloat16,
         )
-    return _tts_model
+    return _model_cache[model_key]
+
+def get_latest_checkpoint(checkpoint_dir: Path) -> Optional[str]:
+    if not checkpoint_dir.exists():
+        return None
+    
+    checkpoints = [d for d in checkpoint_dir.iterdir() if d.is_dir() and d.name.startswith("checkpoint-epoch-")]
+    if not checkpoints:
+        return None
+    
+    checkpoints.sort(key=lambda x: int(x.name.split("-")[-1]))
+    return str(checkpoints[-1])
 
 class SynthesizeRequest(BaseModel):
     text: str
@@ -63,7 +75,14 @@ def synthesize(
     if not speaker:
         raise HTTPException(status_code=404, detail="Speaker not found")
     
-    model = get_model()
+    model_path = None
+    if speaker.model_path:
+        checkpoint_dir = Path(speaker.model_path)
+        latest_checkpoint = get_latest_checkpoint(checkpoint_dir)
+        if latest_checkpoint:
+            model_path = latest_checkpoint
+    
+    model = get_model(model_path)
     
     wavs, sr = model.generate_custom_voice(
         text=request.text,

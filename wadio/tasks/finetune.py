@@ -22,18 +22,40 @@ def run_finetune_thread(job_id: int, speaker_name: str, voice_file_data: list, c
         user_dir = MODEL_DIR / str(job.user_id) / speaker_name
         user_dir.mkdir(parents=True, exist_ok=True)
         
-        train_jsonl_path = user_dir / "train.jsonl"
-        with open(train_jsonl_path, "w", encoding="utf-8") as f:
+        # Step 1: Create raw training JSONL
+        raw_jsonl_path = user_dir / "train_raw.jsonl"
+        with open(raw_jsonl_path, "w", encoding="utf-8") as f:
             for vf in voice_file_data:
                 line = json.dumps({
                     "audio": vf["file_path"],
                     "text": vf["transcript"],
-                    "ref_audio": vf["file_path"]
+                    "ref_audio": vf["file_path"]  # Use same audio as reference
                 }, ensure_ascii=False)
                 f.write(line + "\n")
         
-        output_path = user_dir
-        cmd = [
+        # Step 2: Run prepare_data.py to generate audio_codes
+        train_jsonl_path = user_dir / "train_with_codes.jsonl"
+        prepare_cmd = [
+            "python", "-m", "finetuning.prepare_data",
+            "--device", "cuda:0",
+            "--tokenizer_model_path", "Qwen/Qwen3-TTS-Tokenizer-12Hz",
+            "--input_jsonl", str(raw_jsonl_path),
+            "--output_jsonl", str(train_jsonl_path),
+        ]
+        
+        prepare_result = subprocess.run(prepare_cmd, capture_output=True, text=True)
+        
+        if prepare_result.returncode != 0:
+            job.status = "failed"
+            job.config = {"error": f"prepare_data failed: {prepare_result.stderr}"}
+            db_session.commit()
+            return
+        
+        # Step 3: Run fine-tuning
+        output_path = user_dir / "checkpoints"
+        output_path.mkdir(parents=True, exist_ok=True)
+        
+        ft_cmd = [
             "python", "-m", "finetuning.sft_12hz",
             "--init_model_path", "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
             "--output_model_path", str(output_path),
@@ -44,9 +66,9 @@ def run_finetune_thread(job_id: int, speaker_name: str, voice_file_data: list, c
             "--num_epochs", str(config.get("epochs", 3)),
         ]
         
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        ft_result = subprocess.run(ft_cmd, capture_output=True, text=True)
         
-        if result.returncode == 0:
+        if ft_result.returncode == 0:
             job.status = "completed"
             job.checkpoint_path = str(output_path)
             job.completed_at = datetime.utcnow()
@@ -71,7 +93,7 @@ def run_finetune_thread(job_id: int, speaker_name: str, voice_file_data: list, c
                 db_session.add(speaker)
         else:
             job.status = "failed"
-            job.config = {"error": result.stderr}
+            job.config = {"error": ft_result.stderr}
         
         db_session.commit()
         
