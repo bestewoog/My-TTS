@@ -21,7 +21,7 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # 24 hours
 
 # Admin
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "")  # Set admin email to auto-approve
+ADMIN_EMAIL = "palsuseo@gmail.com"  # Set admin email to auto-approve
 
 # Qwen3-TTS Model
 QWEN_MODEL_PATH = os.getenv("QWEN_MODEL_PATH", "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice")
